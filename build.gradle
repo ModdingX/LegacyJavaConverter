@@ -1,0 +1,109 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'org.moddingx'
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+configurations {
+    lib
+    api.extendsFrom lib
+    libImpl.extendsFrom lib
+    implementation.extendsFrom libImpl
+    libResolvable.extendsFrom libImpl
+}
+
+sourceSets {
+    lib {
+        compileClasspath = configurations.libResolvable
+        java { srcDirs = [ file('src/main/java') ] }
+        resources { srcDirs = [ file('src/main/resources') ] }
+    }
+    main { // Main source set needs to be plugin source set
+        java { srcDirs = [ file('src/plugin/java') ] }
+        resources { srcDirs = [ file('src/plugin/resources') ] }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    lib 'org.ow2.asm:asm:9.3'
+    lib 'org.ow2.asm:asm-tree:9.3'
+    libImpl 'com.google.code.findbugs:jsr305:3.0.2'
+    libImpl 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    implementation sourceSets.lib.output
+}
+
+application.mainClassName = 'org.moddingx.ljc.Main'
+
+gradlePlugin {
+    plugins {
+        plugin {
+            id = 'org.moddingx.lcj'
+            implementationClass = 'org.moddingx.ljc.gradle.LjcPlugin'
+        }
+    }
+}
+
+
+jar {
+    from sourceSets.lib.output
+    manifest {
+        attributes 'Main-Class': application.mainClassName
+    }
+}
+
+task fatjar(type: Jar) {
+    classifier 'fatjar'
+    manifest = jar.manifest
+    with jar
+}
+build.dependsOn fatjar
+
+task configureFatJar {
+    doLast {
+        configurations.libResolvable.each { dep ->
+            fatjar.from(project.zipTree(dep)) {
+                exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
+                duplicatesStrategy DuplicatesStrategy.INCLUDE
+            }
+        }
+    }
+    outputs.upToDateWhen { false }
+}
+fatjar.dependsOn configureFatJar
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier 'sources'
+    from sourceSets.lib.allSource
+    from sourceSets.main.allSource
+}
+build.dependsOn sourcesJar
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            pom {
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url '../moddingx/maven'
+        }
+    }
+}
