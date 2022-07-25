@@ -159,7 +159,7 @@ public class RecordToClass extends ClassVisitor {
                 Bytecode.appendToString(this, "Ljava/lang/String;");
                 for (int i = 0; i < RecordToClass.this.components.size(); i++) {
                     RecordComponent rc = RecordToClass.this.components.get(i);
-                    Bytecode.appendString(this, (i == 0 ? "[" : ",") + rc.name() + "=");
+                    Bytecode.appendString(this, (i == 0 ? "[" : ", ") + rc.name() + "=");
                     this.visitVarInsn(Opcodes.ALOAD, 0);
                     this.visitFieldInsn(Opcodes.GETFIELD, RecordToClass.this.clsName, rc.name(), rc.desc());
                     Bytecode.appendToString(this, rc.desc());
