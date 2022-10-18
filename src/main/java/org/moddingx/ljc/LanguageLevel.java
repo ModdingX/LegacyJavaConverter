@@ -25,7 +25,8 @@ public enum LanguageLevel {
     JAVA_15(15, Opcodes.ASM7, Opcodes.V15, 'F'),
     JAVA_16(16, Opcodes.ASM8, Opcodes.V16, 'G', RecordToClass::new),
     JAVA_17(17, Opcodes.ASM9, Opcodes.V17, 'H', AlwaysStrictFP::new, UnsealClasses::new),
-    JAVA_18(18, Opcodes.ASM9, Opcodes.V18, 'I');
+    JAVA_18(18, Opcodes.ASM9, Opcodes.V18, 'I'),
+    JAVA_19(19, Opcodes.ASM9, Opcodes.V19, 'J');
     
     private static final int TARGET_ASM = Opcodes.ASM9;
     
@@ -56,7 +57,6 @@ public enum LanguageLevel {
     }
     
     public static LanguageLevel of(int ver) {
-        LanguageLevel api = null;
         for (LanguageLevel level : LanguageLevel.values()) {
             if (level.version == ver) {
                 return level;
