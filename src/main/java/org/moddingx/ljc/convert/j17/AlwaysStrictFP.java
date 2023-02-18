@@ -12,6 +12,10 @@ public class AlwaysStrictFP extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-        return super.visitMethod(access | Opcodes.ACC_STRICT, name, descriptor, signature, exceptions);
+        if ((access & Opcodes.ACC_ABSTRACT) == 0) {
+            return super.visitMethod(access | Opcodes.ACC_STRICT, name, descriptor, signature, exceptions);
+        } else {
+            return super.visitMethod(access, name, descriptor, signature, exceptions);
+        }
     }
 }
