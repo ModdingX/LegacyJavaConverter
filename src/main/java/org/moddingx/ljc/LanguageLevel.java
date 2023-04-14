@@ -26,7 +26,8 @@ public enum LanguageLevel {
     JAVA_16(16, Opcodes.ASM8, Opcodes.V16, 'G', RecordToClass::new),
     JAVA_17(17, Opcodes.ASM9, Opcodes.V17, 'H', AlwaysStrictFP::new, UnsealClasses::new),
     JAVA_18(18, Opcodes.ASM9, Opcodes.V18, 'I'),
-    JAVA_19(19, Opcodes.ASM9, Opcodes.V19, 'J');
+    JAVA_19(19, Opcodes.ASM9, Opcodes.V19, 'J'),
+    JAVA_20(20, Opcodes.ASM9, Opcodes.V20, 'K');
     
     private static final int TARGET_ASM = Opcodes.ASM9;
     
