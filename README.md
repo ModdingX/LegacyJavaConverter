@@ -32,7 +32,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.moddingx:LegacyJavaConverter:<version>>'
+        classpath 'org.moddingx:LegacyJavaConverter:<version>'
     }
 }
 

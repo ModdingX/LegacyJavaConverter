@@ -9,17 +9,17 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.module.ModuleDescriptor;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class LegacyConverter {
@@ -58,6 +58,9 @@ public class LegacyConverter {
                 if (manifest.getMainAttributes().containsKey("Multi-Release") && Boolean.parseBoolean(manifest.getMainAttributes().getValue("Multi-Release"))) {
                     throw new IllegalStateException("Can't process multi-release jars.");
                 }
+                
+                @Nullable
+                Map<String, Set<String>> services = api.ordinal() <= LanguageLevel.JAVA_8.ordinal() ? new HashMap<>() : null;
 
                 List<Path> dirs = new ArrayList<>();
                 List<Path> paths = new ArrayList<>();
@@ -80,6 +83,7 @@ public class LegacyConverter {
                 }
 
                 Path modulePath = input.getPath("/module-info.class").toAbsolutePath().normalize();
+                Path servicePath = input.getPath("/META-INF/services").toAbsolutePath().normalize();
                 for (Path path : paths) {
                     Path target = output.getPath(path.toString());
                     if (Objects.equals(modulePath, path) && api.ordinal() <= LanguageLevel.JAVA_8.ordinal()) {
@@ -91,6 +95,17 @@ public class LegacyConverter {
                             if (desc.mainClass().isPresent() && !manifest.getMainAttributes().containsKey("Main-Class")) {
                                 manifest.getMainAttributes().putValue("Main-Class", desc.mainClass().get());
                             }
+                            //noinspection ConstantValue
+                            if (services != null) {
+                                for (ModuleDescriptor.Provides provides : desc.provides()) {
+                                    services.computeIfAbsent(provides.service(), k -> new HashSet<>()).addAll(provides.providers());
+                                }
+                            }
+                        }
+                    } else if (path.startsWith(servicePath) && services != null) {
+                        Set<String> implementations = services.computeIfAbsent(path.getFileName().toString(), k -> new HashSet<>());
+                        try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
+                            implementations.addAll(lines.map(String::strip).filter(str -> !str.isEmpty()).collect(Collectors.toSet()));
                         }
                     } else if (!Objects.equals("module-info.class", path.getFileName().toString()) && path.getFileName().toString().endsWith(".class")) {
                         ClassReader cls;
@@ -116,6 +131,14 @@ public class LegacyConverter {
                 Files.createDirectories(output.getPath("/META-INF"));
                 try (OutputStream out = Files.newOutputStream(output.getPath("/META-INF/MANIFEST.MF"), StandardOpenOption.CREATE_NEW)) {
                     manifest.write(out);
+                }
+                
+                if (services != null && !services.isEmpty()) {
+                    Files.createDirectories(output.getPath("/META-INF/services"));
+                    for (Map.Entry<String, Set<String>> service : services.entrySet()) {
+                        Files.writeString(output.getPath("/META-INF/services").resolve(service.getKey()), service.getValue().stream()
+                                .sorted().map(provider -> provider + "\n").collect(Collectors.joining()), StandardOpenOption.CREATE_NEW);
+                    }
                 }
             }
         }
