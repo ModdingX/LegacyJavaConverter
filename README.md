@@ -36,7 +36,7 @@ buildscript {
     }
 }
 
-apply plugin: 'org.moddingx.lcj'
+apply plugin: 'org.moddingx.ljc'
 ```
 
 The gradle plugin provides two new task types. Both are located in the `org.moddingx.ljc.gradle` package:

@@ -33,19 +33,19 @@ repositories {
 }
 
 dependencies {
-    lib 'org.ow2.asm:asm:9.4'
-    lib 'org.ow2.asm:asm-tree:9.4'
+    lib 'org.ow2.asm:asm:9.5'
+    lib 'org.ow2.asm:asm-tree:9.5'
     libImpl 'com.google.code.findbugs:jsr305:3.0.2'
     libImpl 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation sourceSets.lib.output
 }
 
-application.mainClassName = 'org.moddingx.ljc.Main'
+application.mainClass = 'org.moddingx.ljc.Main'
 
 gradlePlugin {
     plugins {
         plugin {
-            id = 'org.moddingx.lcj'
+            id = 'org.moddingx.ljc'
             implementationClass = 'org.moddingx.ljc.gradle.LjcPlugin'
         }
     }
@@ -55,12 +55,12 @@ gradlePlugin {
 jar {
     from sourceSets.lib.output
     manifest {
-        attributes 'Main-Class': application.mainClassName
+        attributes 'Main-Class': application.mainClass.get()
     }
 }
 
 task fatjar(type: Jar) {
-    classifier 'fatjar'
+    archiveClassifier = 'fatjar'
     manifest = jar.manifest
     with jar
 }
@@ -80,7 +80,7 @@ task configureFatJar {
 fatjar.dependsOn configureFatJar
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.lib.allSource
     from sourceSets.main.allSource
 }
