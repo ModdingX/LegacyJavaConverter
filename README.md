@@ -61,7 +61,7 @@ dependencies {
 }
 
 task convertDependencies(type: org.moddingx.ljc.gradle.LjcConfigurationTask) {
-    input = configurations.legacy
+    input configurations.legacy
     languageLevel = 8
 }
 

@@ -43,13 +43,16 @@ public abstract class LjcConfigurationTask extends DefaultTask {
         this.getLogFile().convention(() -> this.getProject().file("build").toPath().resolve(this.getName()).resolve("ljc.log").toFile());
     }
 
-    @Input
-    public abstract Property<Configuration> getInput();
-    
+    public void input(Configuration configuration) {
+        this.getInput().set(this.getProject().provider(() -> this.getProject().files(configuration.resolve())));
+    }
+
+    @InputFiles
+    public abstract Property<FileCollection> getInput();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
-    
-    
+
     public Provider<FileCollection> output() {
         return this.getProject().provider(() -> {
             Directory dir = this.getOutputDirectory().get();
@@ -72,7 +75,7 @@ public abstract class LjcConfigurationTask extends DefaultTask {
     public void apply() throws IOException {
         LanguageLevel level = LanguageLevel.of(this.getLanguageLevel().get());
         
-        List<Path> inputs = this.getInput().get().resolve().stream().map(File::toPath).map(Path::toAbsolutePath).map(Path::normalize).toList();
+        List<Path> inputs = this.getInput().get().getFiles().stream().map(File::toPath).map(Path::toAbsolutePath).map(Path::normalize).toList();
         Path outputDir = this.getOutputDirectory().get().getAsFile().toPath().toAbsolutePath().normalize();
         
         if (!Files.exists(outputDir)) {
