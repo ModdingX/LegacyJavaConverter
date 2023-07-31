@@ -115,6 +115,7 @@ public class Bytecode {
     public static void loadPreArgHandle(MethodVisitor visitor, Handle handle) {
         if (handle.getTag() == Opcodes.H_NEWINVOKESPECIAL) {
             visitor.visitTypeInsn(Opcodes.NEW, handle.getOwner());
+            visitor.visitInsn(Opcodes.DUP);
         }
     }
     
