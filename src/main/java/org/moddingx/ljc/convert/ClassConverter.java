@@ -24,10 +24,7 @@ public class ClassConverter {
         LanguageLevel[] levels = LanguageLevel.values();
         Map<Integer, LanguageLevel[]> map = new HashMap<>();
         for (int i = api.ordinal() + 1; i < levels.length; i++) {
-            List<LanguageLevel> list = new ArrayList<>();
-            for (int j = i; j > api.ordinal(); j--) {
-                list.add(levels[j]);
-            }
+            List<LanguageLevel> list = new ArrayList<>(Arrays.asList(levels).subList(api.ordinal() + 1, i + 1));
             map.put(levels[i].jvm, list.toArray(LanguageLevel[]::new));
         }
         this.conversions = Map.copyOf(map);

@@ -23,11 +23,11 @@ public class MethodToOverriddenConverter extends ClassVisitor {
 
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                if (opcode == Opcodes.INVOKESTATIC || opcode == Opcodes.INVOKESPECIAL) {
-                    super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+                if (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE) {
+                    SymbolTable.OwnerReplace replace = MethodToOverriddenConverter.this.table.replaceWithOverriddenMethod(opcode, owner, name, descriptor, isInterface);
+                    super.visitMethodInsn(replace.opcode(), replace.owner(), name, descriptor, replace.isInterface());
                 } else {
-                    SymbolTable.OwnerReplace replace = MethodToOverriddenConverter.this.table.replaceWithOverriddenMethod(owner, name, descriptor, isInterface);
-                    super.visitMethodInsn(opcode, replace.owner(), name, descriptor, replace.isInterface());
+                    super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                 }
             }
 
@@ -35,10 +35,12 @@ public class MethodToOverriddenConverter extends ClassVisitor {
             public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
                 if (bootstrapMethodHandle.getTag() == Opcodes.H_INVOKEVIRTUAL || bootstrapMethodHandle.getTag() == Opcodes.H_INVOKEINTERFACE) {
                     SymbolTable.OwnerReplace replace = MethodToOverriddenConverter.this.table.replaceWithOverriddenMethod(
+                            bootstrapMethodHandle.getTag() == Opcodes.H_INVOKEINTERFACE ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL,
                             bootstrapMethodHandle.getOwner(), bootstrapMethodHandle.getName(),
                             bootstrapMethodHandle.getDesc(), bootstrapMethodHandle.isInterface()
                     );
-                    Handle newHandle = new Handle(bootstrapMethodHandle.getTag(), replace.owner(), bootstrapMethodHandle.getName(), bootstrapMethodHandle.getDesc(), replace.isInterface());
+                    int tag = replace.opcode() == Opcodes.INVOKEINTERFACE ? Opcodes.H_INVOKEINTERFACE : Opcodes.H_INVOKEVIRTUAL;
+                    Handle newHandle = new Handle(tag, replace.owner(), bootstrapMethodHandle.getName(), bootstrapMethodHandle.getDesc(), replace.isInterface());
                     super.visitInvokeDynamicInsn(name, descriptor, newHandle, bootstrapMethodArguments);
                 } else {
                     super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);

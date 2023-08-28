@@ -112,14 +112,22 @@ public class Bytecode {
         }
     }
     
-    public static void loadPreArgHandle(MethodVisitor visitor, Handle handle) {
+    public static void callHandle(MethodVisitor visitor, Handle handle) {
+        if (handle.getTag() == Opcodes.H_NEWINVOKESPECIAL) {
+            throw new IllegalArgumentException("Can't use callHandle with newInvokeSpecial");
+        } else {
+            callHandleAfterArgs(visitor, handle);
+        }
+    }
+    
+    public static void callHandleBeforeArgs(MethodVisitor visitor, Handle handle) {
         if (handle.getTag() == Opcodes.H_NEWINVOKESPECIAL) {
             visitor.visitTypeInsn(Opcodes.NEW, handle.getOwner());
             visitor.visitInsn(Opcodes.DUP);
         }
     }
     
-    public static void callHandle(MethodVisitor visitor, Handle handle) {
+    public static void callHandleAfterArgs(MethodVisitor visitor, Handle handle) {
         switch (handle.getTag()) {
             case Opcodes.H_GETFIELD -> visitor.visitFieldInsn(Opcodes.GETFIELD, handle.getOwner(), handle.getName(), handle.getDesc());
             case Opcodes.H_GETSTATIC -> visitor.visitFieldInsn(Opcodes.GETSTATIC, handle.getOwner(), handle.getName(), handle.getDesc());

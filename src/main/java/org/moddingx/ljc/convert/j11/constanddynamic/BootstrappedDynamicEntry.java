@@ -66,7 +66,7 @@ public record BootstrappedDynamicEntry(String clsName, String name, ConstantDyna
         mv.visitFieldInsn(Opcodes.GETSTATIC, this.clsName(), "has$" + this.name(), "Z");
         mv.visitJumpInsn(Opcodes.IFNE, afterGen2);
         
-        Bytecode.loadPreArgHandle(mv, this.dynamic().getBootstrapMethod());
+        Bytecode.callHandleBeforeArgs(mv, this.dynamic().getBootstrapMethod());
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/invoke/MethodHandles", "lookup", "()Ljava/lang/invoke/MethodHandles$Lookup;", false);
         if (bootstrapArgs >= 2) {
             mv.visitLdcInsn(this.dynamic().getName());
@@ -79,7 +79,7 @@ public record BootstrappedDynamicEntry(String clsName, String name, ConstantDyna
                 mv.visitLdcInsn(this.dynamic().getBootstrapMethodArgument(i));
             }
         }
-        Bytecode.callHandle(mv, this.dynamic().getBootstrapMethod());
+        Bytecode.callHandleAfterArgs(mv, this.dynamic().getBootstrapMethod());
         mv.visitFieldInsn(Opcodes.PUTSTATIC, this.clsName(), this.name(), this.dynamic().getDescriptor());
 
         mv.visitInsn(Opcodes.ICONST_1);

@@ -87,7 +87,7 @@ public class SymbolTable implements ClassAccessor, Closeable {
                 try (InputStream in = Files.newInputStream(found)) {
                     ClassReader cr = new ClassReader(in);
                     ClassNode node = new ClassNode();
-                    cr.accept(node, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG);
+                    cr.accept(node, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
                     this.classes.put(cls, node);
                 }
             } else {
@@ -99,16 +99,16 @@ public class SymbolTable implements ClassAccessor, Closeable {
     
     // If a method is added in a later release, that overrides a method that exists in the older release,
     // we need to change it to the more broader method that exists in the older release.
-    public OwnerReplace replaceWithOverriddenMethod(String owner, String name, String desc, boolean isInterface) {
-        if (this.allCurrentClasses.contains(owner)) {
+    public OwnerReplace replaceWithOverriddenMethod(int opcode, String owner, String name, String desc, boolean isInterface) {
+        if (this.allCurrentClasses.contains(owner) && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
             try {
                 OwnerReplace match = this.findMatchingMethod(owner, name, desc);
-                return match == null ? new OwnerReplace(owner, isInterface) : match;
+                return match == null ? new OwnerReplace(opcode, owner, isInterface) : match;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         } else {
-            return new OwnerReplace(owner, isInterface);
+            return new OwnerReplace(opcode, owner, isInterface);
         }
     }
     
@@ -118,7 +118,8 @@ public class SymbolTable implements ClassAccessor, Closeable {
         if (cls == null) return null;
         for (MethodNode method : cls.methods) {
             if ((method.access & Opcodes.ACC_PRIVATE) == 0 && name.equals(method.name) && desc.equals(method.desc)) {
-                return new OwnerReplace(owner, (cls.access & Opcodes.ACC_INTERFACE) != 0);
+                boolean isInterface = (cls.access & Opcodes.ACC_INTERFACE) != 0;
+                return new OwnerReplace(isInterface ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL, owner, isInterface);
             }
         }
         Set<OwnerReplace> allOwners = new HashSet<>();
@@ -480,5 +481,7 @@ public class SymbolTable implements ClassAccessor, Closeable {
         }
     }
     
-    public record OwnerReplace(String owner, boolean isInterface) {}
+    public record OwnerReplace(int opcode, String owner, boolean isInterface) {
+        
+    }
 }

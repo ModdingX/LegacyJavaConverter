@@ -18,7 +18,7 @@ public record IndyBouncer(String clsName, String name, Handle oldBootstrap, List
 
         int bootstrapArgs = Bytecode.effectiveHandleArgCount(this.oldBootstrap());
         
-        Bytecode.loadPreArgHandle(mv, this.oldBootstrap());
+        Bytecode.callHandleBeforeArgs(mv, this.oldBootstrap());
         
         if (bootstrapArgs >= 1) mv.visitVarInsn(Opcodes.ALOAD, 0);
         if (bootstrapArgs >= 2) mv.visitVarInsn(Opcodes.ALOAD, 1);
@@ -34,7 +34,7 @@ public record IndyBouncer(String clsName, String name, Handle oldBootstrap, List
             }
         }
         
-        Bytecode.callHandle(mv, this.oldBootstrap());
+        Bytecode.callHandleAfterArgs(mv, this.oldBootstrap());
         
         mv.visitInsn(Opcodes.ARETURN);
         
