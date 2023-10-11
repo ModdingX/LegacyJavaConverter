@@ -18,6 +18,23 @@ public class Bytecode {
         }
         return false;
     }
+
+    public static Type wrapped(Type type) {
+        return switch (type.getSort()) {
+            case Type.BOOLEAN -> Type.getObjectType("java/lang/Boolean");
+            case Type.BYTE -> Type.getObjectType("java/lang/Byte");
+            case Type.CHAR -> Type.getObjectType("java/lang/Character");
+            case Type.SHORT -> Type.getObjectType("java/lang/Short");
+            case Type.INT -> Type.getObjectType("java/lang/Integer");
+            case Type.LONG -> Type.getObjectType("java/lang/Long");
+            case Type.FLOAT -> Type.getObjectType("java/lang/Float");
+            case Type.DOUBLE -> Type.getObjectType("java/lang/Double");
+            case Type.VOID -> Type.getObjectType("java/lang/Void");
+            case Type.ARRAY, Type.OBJECT -> type;
+            case Type.METHOD -> throw new IllegalArgumentException("Can't wrap method type.");
+            default -> throw new IllegalArgumentException("Invalid type");
+        };
+    }
     
     public static void loadClassRef(MethodVisitor visitor, String type) {
         loadClassRef(visitor, Type.getType(type));
@@ -35,6 +52,7 @@ public class Bytecode {
             case Type.DOUBLE -> visitor.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Double", "TYPE", "Ljava/lang/Class;");
             case Type.VOID -> visitor.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Void", "TYPE", "Ljava/lang/Class;");
             case Type.ARRAY, Type.OBJECT -> visitor.visitLdcInsn(type);
+            case Type.METHOD -> throw new IllegalArgumentException("Can't load classRef for method type.");
         }
     }
     
@@ -53,6 +71,7 @@ public class Bytecode {
             case Type.FLOAT -> visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Float", "valueOf", "(F)Ljava/lang/Float;", false);
             case Type.DOUBLE -> visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false);
             case Type.VOID, Type.ARRAY, Type.OBJECT -> {}
+            case Type.METHOD -> throw new IllegalArgumentException("Can't wrap instance to object for method type.");
         }
     }
     
@@ -75,6 +94,7 @@ public class Bytecode {
             case Type.FLOAT -> visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(F)Ljava/lang/StringBuilder;", false);
             case Type.DOUBLE -> visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(D)Ljava/lang/StringBuilder;", false);
             case Type.ARRAY, Type.OBJECT -> visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;", false);
+            case Type.METHOD -> throw new IllegalArgumentException("Can't append method instance to string.");
         }
     }
     

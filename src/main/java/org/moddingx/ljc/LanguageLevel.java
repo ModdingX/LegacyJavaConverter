@@ -5,6 +5,8 @@ import org.moddingx.ljc.convert.j11.NestHostToPackage;
 import org.moddingx.ljc.convert.j16.RecordToClass;
 import org.moddingx.ljc.convert.j17.AlwaysStrictFP;
 import org.moddingx.ljc.convert.j17.UnsealClasses;
+import org.moddingx.ljc.convert.j21.DynamicSwitchPatterns;
+import org.moddingx.ljc.convert.j21.MatchExceptionFixer;
 import org.moddingx.ljc.convert.j9.DynamicStringConcat;
 import org.moddingx.ljc.convert.j9.ModuleRemover;
 import org.moddingx.ljc.util.MultipleRoundVisitor;
@@ -27,7 +29,8 @@ public enum LanguageLevel {
     JAVA_17(17, Opcodes.ASM9, Opcodes.V17, 'H', AlwaysStrictFP::new, UnsealClasses::new),
     JAVA_18(18, Opcodes.ASM9, Opcodes.V18, 'I'),
     JAVA_19(19, Opcodes.ASM9, Opcodes.V19, 'J'),
-    JAVA_20(20, Opcodes.ASM9, Opcodes.V20, 'K');
+    JAVA_20(20, Opcodes.ASM9, Opcodes.V20, 'K'),
+    JAVA_21(21, Opcodes.ASM9, Opcodes.V21, 'L', DynamicSwitchPatterns::new, MatchExceptionFixer::new);
     
     private static final int TARGET_ASM = Opcodes.ASM9;
     

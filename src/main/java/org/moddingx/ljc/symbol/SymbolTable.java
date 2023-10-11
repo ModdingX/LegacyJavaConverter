@@ -244,153 +244,57 @@ public class SymbolTable implements ClassAccessor, Closeable {
         
         private final String clsName;
         private final AtomicBoolean failed;
-        private final AnnotationVisitor av;
-        private final FieldVisitor fv;
-        private final MethodVisitor mv;
 
         private Visitor(String clsName, AtomicBoolean failed) {
             super(SymbolTable.this.api.asm);
             this.clsName = clsName;
             this.failed = failed;
-            
-            this.av = new AnnotationVisitor(SymbolTable.this.api.asm) {
-
-                @Override
-                public void visitEnum(String name, String descriptor, String value) {
-                    Visitor.this.reportDesc(descriptor);
-                }
-
-                @Override
-                public AnnotationVisitor visitAnnotation(String name, String descriptor) {
-                    if (Visitor.this.reportDesc(descriptor)) return null;
-                    return this;
-                }
-
-                @Override
-                public AnnotationVisitor visitArray(String name) {
-                    return this;
-                }
-            };
-            
-            this.fv = new FieldVisitor(SymbolTable.this.api.asm) {
-
-                @Override
-                public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-                    return Visitor.this.av;
-                }
-            };
-            
-            this.mv = new MethodVisitor(SymbolTable.this.api.asm) {
-
-                @Override
-                public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-                    if (Visitor.this.reportDesc(descriptor)) return null;
-                    return Visitor.this.av;
-                }
-
-                @Override
-                public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
-                    if (Visitor.this.reportDesc(descriptor)) return null;
-                    return Visitor.this.av;
-                }
-
-                @Override
-                public void visitTypeInsn(int opcode, String type) {
-                    Visitor.this.reportClass(type);
-                }
-
-                @Override
-                public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-                    Visitor.this.reportField(owner, name, descriptor);
-                }
-
-                @Override
-                public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-                    Visitor.this.reportMethod(owner, name, descriptor);
-                }
-
-                @Override
-                public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-                    if (Visitor.this.reportHandle(bootstrapMethodHandle)) return;
-                    for (Object arg : bootstrapMethodArguments) {
-                        Visitor.this.reportArg(arg);
-                    }
-                }
-
-                @Override
-                public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
-                    Visitor.this.reportDesc(descriptor);
-                }
-
-                @Override
-                public AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-                    if (Visitor.this.reportDesc(descriptor)) return null;
-                    return Visitor.this.av;
-                }
-
-                @Override
-                public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-                    if (Visitor.this.reportDesc(descriptor)) return null;
-                    return Visitor.this.av;
-                }
-
-                @Override
-                public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
-                    Visitor.this.reportDesc(descriptor);
-                }
-
-                @Override
-                public AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index, String descriptor, boolean visible) {
-                    if (Visitor.this.reportDesc(descriptor)) return null;
-                    return Visitor.this.av;
-                }
-            };
         }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             if (superName != null) {
-                this.reportClass(superName);
+                this.reportClass(superName, "#extends");
             }
             if (interfaces != null) {
                 for (String iface : interfaces) {
-                    this.reportClass(iface);
+                    this.reportClass(iface, "#implements");
                 }
             }
         }
 
         @Override
         public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            if (this.reportDesc(descriptor)) return null;
-            return this.av;
+            if (this.reportDesc(descriptor, "#annotation")) return null;
+            return new SymbolAnnotationVisitor(this.api, "#annotation");
         }
 
         @Override
         public void visitPermittedSubclass(String permittedSubclass) {
-            this.reportClass(permittedSubclass);
+            this.reportClass(permittedSubclass, "#permits");
         }
 
         @Override
         public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-            if (this.reportDesc(descriptor)) return null;
-            return this.fv;
+            if (this.reportDesc(descriptor, name)) return null;
+            return new SymbolFieldVisitor(this.api, name);
         }
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            if (this.reportDescAny(descriptor)) return null;
+            if (this.reportDescAny(descriptor, name + descriptor)) return null;
             if (exceptions != null) {
                 for (String ex : exceptions) {
-                    this.reportClass(ex);
+                    this.reportClass(ex, name + descriptor + "#exc");
                 }
             }
-            return this.mv;
+            return new SymbolMethodVisitor(this.api, name + descriptor);
         }
         
-        private boolean reportClass(String cls) {
+        private boolean reportClass(String cls, String from) {
             try {
                 if (SymbolTable.this.missingClass(cls)) {
-                    Log.error("In " + this.clsName + ": Class not found in java " + SymbolTable.this.api.version + ": " + cls);
+                    Log.error("In " + this.clsName + " (" + from + "): Class not found in java " + SymbolTable.this.api.version + ": " + cls);
                     this.failed.set(true);
                     return true;
                 } else {
@@ -401,10 +305,10 @@ public class SymbolTable implements ClassAccessor, Closeable {
             }
         }
         
-        private boolean reportDesc(String desc) {
+        private boolean reportDesc(String desc, String from) {
             try {
                 if (SymbolTable.this.missingDesc(desc)) {
-                    Log.error("In " + this.clsName + ": Type not found in java " + SymbolTable.this.api.version + ": " + desc);
+                    Log.error("In " + this.clsName + " (" + from + "): Type not found in java " + SymbolTable.this.api.version + ": " + desc);
                     this.failed.set(true);
                     return true;
                 } else {
@@ -415,10 +319,10 @@ public class SymbolTable implements ClassAccessor, Closeable {
             }
         }
         
-        private boolean reportDescAny(String desc) {
+        private boolean reportDescAny(String desc, String from) {
             try {
                 if (SymbolTable.this.missingDescAny(desc)) {
-                    Log.error("In " + this.clsName + ": Descriptor not found in java " + SymbolTable.this.api.version + ": " + desc);
+                    Log.error("In " + this.clsName + " (" + from + "): Descriptor not found in java " + SymbolTable.this.api.version + ": " + desc);
                     this.failed.set(true);
                     return true;
                 } else {
@@ -429,10 +333,10 @@ public class SymbolTable implements ClassAccessor, Closeable {
             }
         }
 
-        private boolean reportField(String owner, String name, String desc) {
+        private boolean reportField(String owner, String name, String desc, String from) {
             try {
                 if (SymbolTable.this.missingField(owner, name, desc)) {
-                    Log.error("In " + this.clsName + ": Field not found in java " + SymbolTable.this.api.version + ": " + owner + " " + name + " " + desc);
+                    Log.error("In " + this.clsName + " (" + from + "): Field not found in java " + SymbolTable.this.api.version + ": " + owner + " " + name + " " + desc);
                     this.failed.set(true);
                     return true;
                 } else {
@@ -443,10 +347,10 @@ public class SymbolTable implements ClassAccessor, Closeable {
             }
         }
 
-        private boolean reportMethod(String owner, String name, String desc) {
+        private boolean reportMethod(String owner, String name, String desc, String from) {
             try {
                 if (SymbolTable.this.missingMethod(owner, name, desc)) {
-                    Log.error("In " + this.clsName + ": Method not found in java " + SymbolTable.this.api.version + ": " + owner + " " + name + " " + desc);
+                    Log.error("In " + this.clsName + " (" + from + "): Method not found in java " + SymbolTable.this.api.version + ": " + owner + " " + name + " " + desc);
                     this.failed.set(true);
                     return true;
                 } else {
@@ -457,26 +361,141 @@ public class SymbolTable implements ClassAccessor, Closeable {
             }
         }
 
-        private boolean reportHandle(Handle handle) {
+        private boolean reportHandle(Handle handle, String from) {
             if (handle.getTag() <= Opcodes.H_PUTSTATIC) {
-                return this.reportField(handle.getOwner(), handle.getName(), handle.getDesc());
+                return this.reportField(handle.getOwner(), handle.getName(), handle.getDesc(), from + "#handle");
             } else {
-                return this.reportMethod(handle.getOwner(), handle.getName(), handle.getDesc());
+                return this.reportMethod(handle.getOwner(), handle.getName(), handle.getDesc(), from + "#handle");
             }
         }
 
-        private boolean reportArg(Object arg) {
+        private boolean reportArg(Object arg, String from) {
             if (arg instanceof Handle handle) {
-                return this.reportHandle(handle);
+                return this.reportHandle(handle, from);
             } else if (arg instanceof ConstantDynamic dyn) {
-                if (this.reportDescAny(dyn.getDescriptor())) return true;
-                if (this.reportHandle(dyn.getBootstrapMethod())) return true;
+                if (this.reportDescAny(dyn.getDescriptor(), from + "#constant")) return true;
+                if (this.reportHandle(dyn.getBootstrapMethod(), from + "#constantbootstrap")) return true;
                 for (int i = 0; i < dyn.getBootstrapMethodArgumentCount(); i++) {
-                    if (this.reportArg(dyn.getBootstrapMethodArgument(i))) return true;
+                    if (this.reportArg(dyn.getBootstrapMethodArgument(i), from + "#bootstraparg" + i)) return true;
                 }
                 return false;
             } else {
                 return false;
+            }
+        }
+        
+        private class SymbolAnnotationVisitor extends AnnotationVisitor {
+
+            private final String from;
+            
+            public SymbolAnnotationVisitor(int api, String from) {
+                super(api);
+                this.from = from;
+            }
+
+            @Override
+            public void visitEnum(String name, String descriptor, String value) {
+                Visitor.this.reportDesc(descriptor, this.from);
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+                if (Visitor.this.reportDesc(descriptor, this.from)) return null;
+                return this;
+            }
+
+            @Override
+            public AnnotationVisitor visitArray(String name) {
+                return this;
+            }
+        }
+            
+        private class SymbolFieldVisitor extends FieldVisitor {
+
+            private final String from;
+            
+            public SymbolFieldVisitor(int api, String from) {
+                super(api);
+                this.from = from;
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                if (Visitor.this.reportDesc(descriptor, this.from + "#annotation")) return null;
+                return new SymbolAnnotationVisitor(this.api, this.from + "annotation");
+            }
+        }
+            
+        private class SymbolMethodVisitor extends MethodVisitor {
+
+            private final String from;
+
+            protected SymbolMethodVisitor(int api, String from) {
+                super(api);
+                this.from = from;
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                if (Visitor.this.reportDesc(descriptor, this.from + "#annotation")) return null;
+                return new SymbolAnnotationVisitor(this.api, this.from + "#annotation");
+            }
+
+            @Override
+            public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+                if (Visitor.this.reportDesc(descriptor, this.from + "#param_annotation")) return null;
+                return new SymbolAnnotationVisitor(this.api, this.from + "#param_annotation");
+            }
+
+            @Override
+            public void visitTypeInsn(int opcode, String type) {
+                Visitor.this.reportClass(type, this.from);
+            }
+
+            @Override
+            public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+                Visitor.this.reportField(owner, name, descriptor, this.from);
+            }
+
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+                Visitor.this.reportMethod(owner, name, descriptor, this.from);
+            }
+
+            @Override
+            public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+                if (Visitor.this.reportHandle(bootstrapMethodHandle, this.from)) return;
+                for (Object arg : bootstrapMethodArguments) {
+                    Visitor.this.reportArg(arg, this.from);
+                }
+            }
+
+            @Override
+            public void visitMultiANewArrayInsn(String descriptor, int numDimensions) {
+                Visitor.this.reportDesc(descriptor, this.from);
+            }
+
+            @Override
+            public AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                if (Visitor.this.reportDesc(descriptor, this.from + "#localannotation")) return null;
+                return new SymbolAnnotationVisitor(this.api, this.from + "#localannotation");
+            }
+
+            @Override
+            public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                if (Visitor.this.reportDesc(descriptor, this.from + "#localannotation")) return null;
+                return new SymbolAnnotationVisitor(this.api, this.from + "#localannotation");
+            }
+
+            @Override
+            public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
+                Visitor.this.reportDesc(descriptor, this.from);
+            }
+
+            @Override
+            public AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index, String descriptor, boolean visible) {
+                if (Visitor.this.reportDesc(descriptor, this.from + "#localannotation")) return null;
+                return new SymbolAnnotationVisitor(this.api, this.from + "#localannotation");
             }
         }
     }
