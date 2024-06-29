@@ -1,8 +1,8 @@
 package org.moddingx.ljc.util;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 @FunctionalInterface

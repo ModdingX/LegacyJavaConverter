@@ -35,7 +35,7 @@ repositories {
 dependencies {
     lib 'org.ow2.asm:asm:9.7'
     lib 'org.ow2.asm:asm-tree:9.7'
-    libImpl 'com.google.code.findbugs:jsr305:3.0.2'
+    libImpl 'org.jetbrains:annotations:24.1.0'
     libImpl 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation sourceSets.lib.output
 }

@@ -1,5 +1,6 @@
 package org.moddingx.ljc;
 
+import org.jetbrains.annotations.Nullable;
 import org.moddingx.ljc.convert.ClassConverter;
 import org.moddingx.ljc.convert.ClassHierarchy;
 import org.moddingx.ljc.symbol.SymbolTable;
@@ -9,7 +10,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

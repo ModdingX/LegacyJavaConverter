@@ -1,5 +1,6 @@
 package org.moddingx.ljc.symbol;
 
+import org.jetbrains.annotations.Nullable;
 import org.moddingx.ljc.LanguageLevel;
 import org.moddingx.ljc.LegacyConverter;
 import org.moddingx.ljc.Log;
@@ -9,7 +10,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;

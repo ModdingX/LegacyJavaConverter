@@ -1,5 +1,6 @@
 package org.moddingx.ljc.convert;
 
+import org.jetbrains.annotations.Nullable;
 import org.moddingx.ljc.LanguageLevel;
 import org.moddingx.ljc.Log;
 import org.moddingx.ljc.convert.meta.AttributeRemover;
@@ -10,7 +11,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.tree.ClassNode;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class ClassConverter {

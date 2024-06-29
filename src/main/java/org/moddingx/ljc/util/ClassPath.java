@@ -1,10 +1,10 @@
 package org.moddingx.ljc.util;
 
+import org.jetbrains.annotations.Nullable;
 import org.moddingx.ljc.LegacyConverter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
