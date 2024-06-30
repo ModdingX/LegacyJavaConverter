@@ -1,6 +1,6 @@
 package org.moddingx.ljc;
 
-import org.jetbrains.annotations.Nullable;
+import jakarta.annotation.Nullable;
 import org.moddingx.ljc.convert.ClassConverter;
 import org.moddingx.ljc.convert.ClassHierarchy;
 import org.moddingx.ljc.symbol.SymbolTable;

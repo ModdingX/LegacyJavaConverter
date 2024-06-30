@@ -1,9 +1,8 @@
 package org.moddingx.ljc.gradle;
 
+import jakarta.annotation.Nonnull;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-
-import javax.annotation.Nonnull;
 
 public class LjcPlugin implements Plugin<Project> {
 

@@ -1,6 +1,6 @@
 package org.moddingx.ljc.symbol;
 
-import org.jetbrains.annotations.Nullable;
+import jakarta.annotation.Nullable;
 import org.moddingx.ljc.LanguageLevel;
 import org.moddingx.ljc.LegacyConverter;
 import org.moddingx.ljc.Log;

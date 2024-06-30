@@ -1,6 +1,6 @@
 package org.moddingx.ljc;
 
-import org.jetbrains.annotations.Nullable;
+import jakarta.annotation.Nullable;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

@@ -1,6 +1,6 @@
 package org.moddingx.ljc.util;
 
-import org.jetbrains.annotations.Nullable;
+import jakarta.annotation.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;

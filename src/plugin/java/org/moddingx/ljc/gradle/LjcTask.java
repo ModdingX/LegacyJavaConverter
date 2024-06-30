@@ -1,5 +1,6 @@
 package org.moddingx.ljc.gradle;
 
+import jakarta.annotation.Nonnull;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -15,7 +16,6 @@ import org.moddingx.ljc.LanguageLevel;
 import org.moddingx.ljc.LegacyConverter;
 import org.moddingx.ljc.Log;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
