@@ -33,8 +33,8 @@ repositories {
 }
 
 dependencies {
-    lib 'org.ow2.asm:asm:9.7'
-    lib 'org.ow2.asm:asm-tree:9.7'
+    lib 'org.ow2.asm:asm:9.8'
+    lib 'org.ow2.asm:asm-tree:9.8'
     libImpl 'jakarta.annotation:jakarta.annotation-api:3.0.0'
     libImpl 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation sourceSets.lib.output
