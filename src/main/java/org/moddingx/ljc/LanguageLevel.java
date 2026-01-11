@@ -33,8 +33,9 @@ public enum LanguageLevel {
     JAVA_21(21, Opcodes.ASM9, Opcodes.V21, 'L', DynamicSwitchPatterns::new, MatchExceptionFixer::new),
     JAVA_22(22, Opcodes.ASM9, Opcodes.V22, 'M'),
     JAVA_23(23, Opcodes.ASM9, Opcodes.V23, 'N'),
-    JAVA_24(24, Opcodes.ASM9, Opcodes.V24, 'O');
-    
+    JAVA_24(24, Opcodes.ASM9, Opcodes.V24, 'O'),
+    JAVA_25(25, Opcodes.ASM9, Opcodes.V25, 'P');
+
     private static final int TARGET_ASM = Opcodes.ASM9;
     
     public final int version;
