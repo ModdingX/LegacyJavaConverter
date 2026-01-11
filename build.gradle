@@ -63,7 +63,7 @@ var fatJar = tasks.register('fatjar', Jar) { task ->
     manifest = tasks.named('jar', Jar).get().manifest
     with tasks.named('jar', Jar).get()
 
-    configurations.runtimeClasspath.each { dep ->
+    configurations.libResolvable.each { dep ->
         task.from(project.zipTree(dep)) {
             exclude 'META-INF/MANIFEST.MF', 'META-INF/INDEX.LIST'
             exclude 'module-info.class', 'META-INF/versions/*/module-info.class'
