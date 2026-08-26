@@ -34,7 +34,8 @@ public enum LanguageLevel {
     JAVA_22(22, Opcodes.ASM9, Opcodes.V22, 'M'),
     JAVA_23(23, Opcodes.ASM9, Opcodes.V23, 'N'),
     JAVA_24(24, Opcodes.ASM9, Opcodes.V24, 'O'),
-    JAVA_25(25, Opcodes.ASM9, Opcodes.V25, 'P');
+    JAVA_25(25, Opcodes.ASM9, Opcodes.V25, 'P'),
+    JAVA_26(26, Opcodes.ASM9, Opcodes.V26, 'Q');
 
     private static final int TARGET_ASM = Opcodes.ASM9;
     
